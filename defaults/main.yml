@@ -1,2 +1,3 @@
 ---
 raspberry_user: pi
+docker_pihole_admin_password:

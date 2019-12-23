@@ -1,14 +1,21 @@
 ---
+- name: "Set the __docker_pihole_admin_password fact"
+  set_fact:
+    __docker_pihole_random_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits') }}"
+    __docker_pihole_admin_password: "{{ docker_pihole_admin_password | default(__docker_pihole_random_password) }}" 
+
 - name: Ensure docker group exists
   group:
     name: docker
     state: present
+
 - name: Ensure '{{ raspberry_user }}' user is added to docker group
   become: yes
   user:
     name: '{{ raspberry_user }}'
     groups: docker
     append: yes
+
 - name: Ensure docker is installed
   include_role:
     name: geerlingguy.docker
@@ -17,3 +24,33 @@
     # Override the defaults here to support raspbian
     docker_apt_arch: 'armhf'
     docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} {{ docker_apt_release_channel }}"
+
+- name: Ensure pip docker package is installed
+  include_role:
+    name: geerlingguy.pip
+  vars:
+    ansible_become: yes
+    pip_install_packages:
+    - docker
+
+- name: Ensure pihole docker container is running
+  docker_container:
+    name: pihole
+    image: pihole/pihole:latest
+    state: started
+    restart: no
+    ports:
+    - '53:53/udp' #dns
+    - '53:53/tcp' #dns
+    #- '67:67/udp' #dhcp
+    - '80:80/tcp' #web interface
+    - '443:443/tcp' #web interface
+    volumes:
+    - ./etc-pihole/:/etc/pihole/
+    - ./etc-dnsmasq.d/:/etc/dnsmasq.d/
+    dns_servers:
+    - 8.8.8.8
+    - 1.1.1.1
+    env:
+      TZ: 'Etc/UTC'
+      WEBPASSWORD: "{{ __docker_pihole_admin_password }}"
