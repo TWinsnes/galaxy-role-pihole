@@ -1,4 +1,19 @@
 ---
-- name: Install docker
+- name: Ensure docker group exists
+  group:
+    name: docker
+    state: present
+- name: Ensure '{{ raspberry_user }}' user is added to docker group
+  become: yes
+  user:
+    name: '{{ raspberry_user }}'
+    groups: docker
+    append: yes
+- name: Ensure docker is installed
   include_role:
     name: geerlingguy.docker
+  vars:
+    ansible_become: yes
+    # Override the defaults here to support raspbian
+    docker_apt_arch: 'armhf'
+    docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} {{ docker_apt_release_channel }}"
