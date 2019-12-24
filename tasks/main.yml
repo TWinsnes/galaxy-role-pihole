@@ -1,9 +1,4 @@
 ---
-- name: "Set the __docker_pihole_admin_password fact"
-  set_fact:
-    __docker_pihole_random_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits') }}"
-    __docker_pihole_admin_password: "{{ docker_pihole_admin_password | default(__docker_pihole_random_password) }}" 
-
 - name: Ensure docker group exists
   group:
     name: docker
@@ -39,18 +34,17 @@
     image: pihole/pihole:latest
     state: started
     restart: no
+    restart_policy: unless-stopped
     ports:
     - '53:53/udp' #dns
     - '53:53/tcp' #dns
-    #- '67:67/udp' #dhcp
+    - '67:67/udp' #dhcp
     - '80:80/tcp' #web interface
     - '443:443/tcp' #web interface
     volumes:
     - ./etc-pihole/:/etc/pihole/
     - ./etc-dnsmasq.d/:/etc/dnsmasq.d/
-    dns_servers:
-    - 8.8.8.8
-    - 1.1.1.1
     env:
-      TZ: 'Etc/UTC'
-      WEBPASSWORD: "{{ __docker_pihole_admin_password }}"
+      DNS1: '{{ dns_server1 }}'
+      DNS2: '{{ dns_server2 }}'
+      WEBPASSWORD: "{{ pihole_admin_password }}"
