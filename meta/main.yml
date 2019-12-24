@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: Pihole
   author: Thomas Winsnes
   description: Role to set up and configure Pi-hole on a raspberry pi using docker
   license: Apache-2.0
@@ -15,14 +16,14 @@ galaxy_info:
   # https://galaxy.ansible.com/api/v1/platforms/
   #
   platforms:
-  - name: Rasbian
+  - name: debian
     versions:
-    - Stretch
+    - stretch
 
   galaxy_tags:
-  - Pi-hole
   - pihole
-  - Raspberry Pi
+  - raspberry
+  - raspberrypi
 
   dependencies: 
   - geerlingguy.docker
