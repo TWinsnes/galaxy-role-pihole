@@ -18,7 +18,7 @@ galaxy_info:
   platforms:
   - name: debian
     versions:
-    - stretch
+    - buster
 
   galaxy_tags:
   - pihole
@@ -27,4 +27,3 @@ galaxy_info:
 
   dependencies: 
   - geerlingguy.docker
-  - geerlingguy.pip

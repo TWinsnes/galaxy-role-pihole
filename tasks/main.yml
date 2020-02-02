@@ -1,5 +1,6 @@
 ---
 - name: Ensure docker group exists
+  become: yes
   group:
     name: docker
     state: present
@@ -11,6 +12,12 @@
     groups: docker
     append: yes
 
+- name: Ensure aufs-tools apt preferences is set to not instal
+  become: yes
+  copy:
+    dest: /etc/apt/preferences.d/aufs-tools
+    src: files/aufs-tools
+
 - name: Ensure docker is installed
   include_role:
     name: geerlingguy.docker
@@ -19,16 +26,20 @@
     # Override the defaults here to support raspbian
     docker_apt_arch: 'armhf'
     docker_apt_repository: "deb [arch={{ docker_apt_arch }}] https://download.docker.com/linux/raspbian {{ ansible_distribution_release }} {{ docker_apt_release_channel }}"
+  register: docker_install
 
-- name: Ensure pip docker package is installed
-  include_role:
-    name: geerlingguy.pip
-  vars:
-    ansible_become: yes
-    pip_install_packages:
-    - docker
+- name: Ensure docker python library is installed
+  become: yes
+  package:
+    name: python-docker
+    state: present
+    
+- name: Ensure Docker api is started
+  wait_for:
+    timeout: 60
 
 - name: Ensure pihole docker container is running
+  become: yes
   docker_container:
     name: pihole
     image: pihole/pihole:latest
